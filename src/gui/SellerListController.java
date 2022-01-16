@@ -31,9 +31,11 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Seller;
+import model.services.DepartmentService;
 import model.services.SellerService;
 
 public class SellerListController implements Initializable, DateChangeListener {
+
 	private SellerService service;
 
 	@FXML
@@ -52,10 +54,8 @@ public class SellerListController implements Initializable, DateChangeListener {
 	private TableColumn<Seller, Date> tableColumnBirthDate;
 
 	@FXML
-	private TableColumn<Seller, Double> tableColumnBasySalary;
+	private TableColumn<Seller, Double> tableColumnBaseSalary;
 
-	
-	
 	@FXML
 	private TableColumn<Seller, Seller> tableColumnEDIT;
 
@@ -88,10 +88,10 @@ public class SellerListController implements Initializable, DateChangeListener {
 		tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
 		tableColumnEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
 		tableColumnBirthDate.setCellValueFactory(new PropertyValueFactory<>("birthDate"));
-		tableColumnBasySalary.setCellValueFactory(new PropertyValueFactory<>("baseSalary"));
-        Utils.formatTableColumnDate(tableColumnBirthDate, "dd/MM/yyyy");
-        Utils.formatTableColumnDouble(tableColumnBasySalary, 2);
-		
+		Utils.formatTableColumnDate(tableColumnBirthDate, "dd/MM/yyyy");
+		tableColumnBaseSalary.setCellValueFactory(new PropertyValueFactory<>("baseSalary"));
+		Utils.formatTableColumnDouble(tableColumnBaseSalary, 2);
+
 		Stage stage = (Stage) Main.getMainScene().getWindow();
 		tableViewSeller.prefHeightProperty().bind(stage.heightProperty());
 	}
@@ -114,9 +114,10 @@ public class SellerListController implements Initializable, DateChangeListener {
 
 			SellerFormController controller = loader.getController();
 			controller.setSeller(obj);
-			controller.seSellerService(new SellerService());
-			controller.subscribeDateChangeListener(this);
-			controller.updateFormDate();
+			controller.setServices(new SellerService(), new DepartmentService());
+			controller.loadAssociatedObjects();
+			controller.subscribeDataChangeListener(this);
+			controller.updateFormData();
 
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Enter Seller data");
@@ -126,6 +127,7 @@ public class SellerListController implements Initializable, DateChangeListener {
 			dialogStage.initModality(Modality.WINDOW_MODAL);
 			dialogStage.showAndWait();
 		} catch (IOException e) {
+			e.printStackTrace();
 			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
 		}
 	}
@@ -133,7 +135,6 @@ public class SellerListController implements Initializable, DateChangeListener {
 	@Override
 	public void onDateChanger() {
 		updateTableView();
-
 	}
 
 	private void initEditButtons() {
@@ -149,8 +150,7 @@ public class SellerListController implements Initializable, DateChangeListener {
 					return;
 				}
 				setGraphic(button);
-				button.setOnAction(
-						event -> createDialogForm(obj, "/gui/SellerForm.fxml", Utils.currentStage(event)));
+				button.setOnAction(event -> createDialogForm(obj, "/gui/SellerForm.fxml", Utils.currentStage(event)));
 			}
 		});
 	}
@@ -174,19 +174,20 @@ public class SellerListController implements Initializable, DateChangeListener {
 	}
 
 	private void removeEntity(Seller obj) {
-	    Optional<ButtonType> result=Alerts.showConfirmation("Confimation", "Are you sure to delete?");
-		
-	    if(result.get()==ButtonType.OK) {
-	    	if(service==null) {
-	    		throw new IllegalStateException("Service was null");
-	    	}
-	   try {
-	    	service.remove(obj); 
-	    	updateTableView();
-	   }catch(DbIntegrityException e) {
-		   Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
-	   }
-	    }
-	    
+		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
+
+		if (result.get() == ButtonType.OK) {
+			if (service == null) {
+				throw new IllegalStateException("Service was null");
+			}
+			try {
+				service.remove(obj);
+				updateTableView();
+			} catch (DbIntegrityException e) {
+				Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
+			}
+		}
 	}
+
+	
 }
