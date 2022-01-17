@@ -37,6 +37,7 @@ import model.services.SellerService;
 public class SellerListController implements Initializable, DateChangeListener {
 
 	private SellerService service;
+	private DepartmentService departmentService;
 
 	@FXML
 	private TableView<Seller> tableViewSeller;
@@ -74,7 +75,7 @@ public class SellerListController implements Initializable, DateChangeListener {
 		createDialogForm(obj, "/gui/SellerForm.fxml", parentStage);
 	}
 
-	public void setSellerService(SellerService service) {
+	public void setServices(SellerService service) {
 		this.service = service;
 	}
 
