@@ -120,7 +120,7 @@ public class SellerFormController implements Initializable {
 	}
 
 	private void notifyDataChangeListeners() {
-		
+
 		for (DateChangeListener listener : dateChangeListeners) {
 			listener.onDateChanger();
 		}
